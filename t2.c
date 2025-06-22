@@ -395,43 +395,34 @@ int AllocBlock(BlockBuddy* head, char* pid, int tam_req) {
 }
 
 // Libera memória associada a um processo e tenta juntar Blocks
-void FreeBlock(BlockBuddy* head, char* pid) {
-    BlockBuddy* atual = head;
-    while (atual) {
-        if (!atual->status && strcmp(atual->pid, pid) == 0) {
+void FreeBlock(BlockBuddy *head, char *pid)
+{
+    BlockBuddy *atual = head;
+    while (atual)
+    {
+        if (!atual->status && strcmp(atual->pid, pid) == 0)
+        {
             atual->status = 1;
             atual->tam_pedido = 0;
             strcpy(atual->pid, "");
-            printf("> Liberado %s\n", pid); // Adicionei uma mensagem para confirmação da liberação
             break;
         }
         atual = atual->next;
     }
 
-    // Coalescência (tentar juntar blocos livres adjacentes)
-    // Este loop de coalescência é um pouco mais complexo e pode precisar de ajustes dependendo
-    // de como a lista de blocos é mantida (ordenada por endereço, por exemplo).
-    // O seu loop atual só verifica o 'next'. Para uma coalescência completa do buddy,
-    // você precisaria de uma forma de encontrar o "buddy" de um bloco.
-    // O buddy de um bloco `B` é o bloco `B'` de mesmo tamanho no endereço `B->inicio XOR B->tam`.
-    // Isso geralmente é feito navegando uma árvore ou mantendo listas de blocos livres por tamanho.
-    // Para simplificar, o seu código atual tenta coalescer apenas com o próximo na lista encadeada.
     atual = head;
-    while (atual && atual->next) {
-        // Condição para coalescência: ambos livres, mesmo tamanho, e são "buddies"
-        // A condição `atual->inicio % (2 * atual->tam) == 0` verifica se 'atual' é o bloco "esquerdo" de um par buddy.
-        // Se 'atual' for o esquerdo e 'next' for o direito, eles podem ser mesclados.
+    while (atual && atual->next)
+    {
         if (atual->status && atual->next->status &&
             atual->tam == atual->next->tam &&
-            (atual->inicio / atual->tam) % 2 == 0 && // 'atual' é o bloco esquerdo do par
-            atual->next->inicio == atual->inicio + atual->tam) // 'next' é o bloco direito
+            atual->inicio % (2 * atual->tam) == 0)
         {
-            printf("Mesclando blocos livres de %d KB em um bloco de %d KB\n", atual->tam, atual->tam * 2);
+
             atual->tam *= 2;
-            BlockBuddy* temp = atual->next;
+            BlockBuddy *temp = atual->next;
             atual->next = temp->next;
             free(temp);
-            atual = head; // Reinicia a busca por coalescência desde o início, pois a estrutura da lista mudou
+            atual = head;
             continue;
         }
         atual = atual->next;
@@ -549,14 +540,6 @@ void Runbuddy(int tam_mem) {
 
     printf("Fragmentacao interna total: %d KB\n", InnerFrag(memoria));
 
-    // Liberar toda a memória alocada dinamicamente para o Buddy System
-    BlockBuddy *current = memoria;
-    BlockBuddy *temp;
-    while (current != NULL) {
-        temp = current;
-        current = current->next;
-        free(temp);
-    }
 }
 
 /*void Runworst_fit(int tam_mem) {
