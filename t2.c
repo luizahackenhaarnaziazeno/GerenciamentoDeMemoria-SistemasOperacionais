@@ -575,9 +575,9 @@ int main() {
     switch (tipo_part) {
         case 1:
             if (politica == 1)
-                printf("[!] Worst-Fit.\n");
+              printf("[!] Particionamento worst-fit.\n");
             else if (politica == 2)
-              printf("[!] Circular-Fit.\n");
+             printf("[!] Particionamento circular-fit.\n");
                 Runcircularfit(tam_mem);
             else
                 printf("Politica invalida.\n");
