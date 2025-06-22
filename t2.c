@@ -576,8 +576,9 @@ int main() {
     switch (tipo_part) {
         case 1:
             if (politica == 1)
-                printf("[!] Worst-Fit nao implementado neste codigo.\n");
+                printf("[!] Worst-Fit.\n");
             else if (politica == 2)
+              printf("[!] Circular-Fit.\n");
                 Runcircularfit(tam_mem);
             else
                 printf("Politica invalida.\n");
