@@ -571,7 +571,6 @@ int main() {
         printf("Erro: Para o Buddy System, o tamanho da memoria deve ser uma potencia de dois e positivo.\n");
         return 1;
     }
-    // No Circular-Fit, você já tem essa validação em iniciar_memoria
 
     switch (tipo_part) {
         case 1:
