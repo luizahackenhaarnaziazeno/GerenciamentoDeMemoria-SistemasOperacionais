@@ -14,7 +14,7 @@ typedef struct Bloco {
 } Bloco;
 
 Bloco *primeiro = NULL;     // Ponteiro para o primeiro bloco da lista
-Bloco *ultimo_alocado = NULL;  // Ponteiro para o último bloco onde uma alocação ocorreu (Circular-Fit)
+Bloco *ultimo_alocado = NULL;  // Ponteiro para o último bloco onde uma alocação ocorreu 
 
 // Cria um novo bloco
 Bloco* criar_bloco(char id, int tam, int end_ini, bool alocado) {
@@ -179,10 +179,10 @@ void alocar_memoria_circular(char id_proc, int tam_req) {
     } else {
         printf("ESPACO INSUFICIENTE DE MEMORIA para o processo %c.\n", id_proc);
     }
-    mostrar_memoria(); // Exibe o status da memória após a alocação
+    mostrar_memoria(); 
 }
 
-// Libera memória e tenta juntar (coalescer) blocos livres adjacentes
+// Libera memória e tenta juntar blocos livres adjacentes
 void liberar_memoria(char id_proc) {
     printf("\nRequisicao: OUT(%c)\n", id_proc);
 
@@ -320,6 +320,108 @@ void Runcircularfit(int tam_total_memoria) {
     limpar_memoria();
 }
 
+// ----- Worst-Fit -------------------
+void alocar_memoria_worst_fit(char id_proc, int tam_req) {
+    printf("\nRequisicao: IN(%c, %d) - Worst-Fit\n", id_proc, tam_req);
+
+    if (primeiro == NULL) {
+        printf("Erro: Memoria nao inicializada.\n");
+        return;
+    }
+
+    Bloco *atual = primeiro;
+    Bloco *bloco_worst_fit = NULL; // Este será o bloco final escolhido
+    int maior_tam_livre = -1;     // Para rastrear o tamanho do maior bloco livre elegível
+
+    // Passo 1: Percorrer todos os blocos para encontrar o maior bloco livre que se encaixa
+    do {
+        // Verifica se o bloco atual está livre e se o tamanho dele é suficiente para a requisição
+        if (!atual->alocado && atual->tam >= tam_req) {
+            // Se o tamanho do bloco atual é maior do que o maior tamanho livre encontrado até agora
+            if (atual->tam > maior_tam_livre) {
+                maior_tam_livre = atual->tam; // Atualiza o maior tamanho livre
+                bloco_worst_fit = atual;      // Este bloco é o novo candidato a pior ajuste
+            }
+        }
+        atual = atual->prox;
+    } while (atual != primeiro); // Continua até ter percorrido a lista inteira
+
+    // Passo 2: Tentar alocar no bloco encontrado (se houver)
+    if (bloco_worst_fit != NULL) {
+        if (bloco_worst_fit->tam == tam_req) {
+            // Encaixe perfeito no maior bloco livre (não há fragmentação interna)
+            bloco_worst_fit->id = id_proc;
+            bloco_worst_fit->alocado = true;
+            printf("Alocado %d KB para o processo %c (encaixe perfeito no maior bloco).\n", tam_req, id_proc);
+        } else {
+            // Divide o maior bloco existente
+            Bloco *novo_bloco_livre = criar_bloco(
+                ' ',
+                bloco_worst_fit->tam - tam_req,
+                bloco_worst_fit->end_ini + tam_req,
+                false
+            );
+
+            // Insere o novo bloco livre APÓS o bloco alocado
+            novo_bloco_livre->prox = bloco_worst_fit->prox;
+            novo_bloco_livre->ant = bloco_worst_fit;
+            if (bloco_worst_fit->prox != NULL) { // Garante que não é o único bloco na lista circular
+                bloco_worst_fit->prox->ant = novo_bloco_livre;
+            }
+            bloco_worst_fit->prox = novo_bloco_livre;
+
+            // Atualiza o bloco original (agora alocado)
+            bloco_worst_fit->id = id_proc;
+            bloco_worst_fit->tam = tam_req;
+            bloco_worst_fit->alocado = true;
+
+            printf("Alocado %d KB para o processo %c (maior bloco dividido, %d KB restantes).\n", tam_req, id_proc, novo_bloco_livre->tam);
+        }
+    } else {
+        printf("ESPACO INSUFICIENTE DE MEMORIA para o processo %c.\n", id_proc);
+    }
+    mostrar_memoria();
+}
+
+void processar_requisicoes_arquivo_worst_fit(const char *nome_arquivo) {
+    FILE *arquivo = fopen(nome_arquivo, "r");
+    if (arquivo == NULL) {
+        perror("Erro ao abrir o arquivo de requisicoes");
+        return;
+    }
+
+    char linha[100];
+    char comando[5];
+    char id_processo;
+    int tamanho;
+
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        linha[strcspn(linha, "\n")] = 0; // Remove o '\n'
+
+        if (sscanf(linha, "IN(%c,%d)", &id_processo, &tamanho) == 2) {
+            alocar_memoria_worst_fit(id_processo, tamanho); // Calls the new Worst-Fit allocation
+        }
+        else if (sscanf(linha, "OUT(%c)", &id_processo) == 1) {
+            liberar_memoria(id_processo); // Deallocation logic remains the same
+        } else {
+            printf("Linha invalida no arquivo: %s\n", linha);
+        }
+    }
+
+    fclose(arquivo);
+}
+
+void Runworst_fit(int tam_mem){
+    iniciar_memoria(tam_mem);
+
+    char nome_arq_requisicoes[100];
+    printf("Digite o nome do arquivo com as requisicoes para Worst-Fit (ex: requests.txt): ");
+    scanf("%s", nome_arq_requisicoes);
+
+    processar_requisicoes_arquivo_worst_fit(nome_arq_requisicoes);
+
+    limpar_memoria();
+}
 
 // ------------- BUDDY -------------------
 #define TAM_MEM_PADRAO 256
@@ -542,10 +644,6 @@ void Runbuddy(int tam_mem) {
 
 }
 
-/*void Runworst_fit(int tam_mem) {
-    printf("[!] Particionamento worst-fit.\n");
-}*/
-
 // Função principal
 int main() {
     int tipo_part;
@@ -566,6 +664,7 @@ int main() {
 
     printf("Informe o tamanho da memoria principal (em KB, potencia de 2):\n> ");
     scanf("%d", &tam_mem);
+
     // Validação básica para o Buddy System: tamanho deve ser potência de 2
     if (tipo_part == 2 && (tam_mem <= 0 || (tam_mem & (tam_mem - 1)) != 0)) {
         printf("Erro: Para o Buddy System, o tamanho da memoria deve ser uma potencia de dois e positivo.\n");
@@ -574,15 +673,18 @@ int main() {
 
     switch (tipo_part) {
         case 1:
-            if (politica == 1)
-              printf("[!] Particionamento worst-fit.\n");
-            else if (politica == 2)
-             printf("[!] Particionamento circular-fit.\n");
+            if (politica == 1) { // Added curly braces here
+                printf("[!] Particionamento worst-fit.\n");
+                Runworst_fit(tam_mem);
+            } else if (politica == 2) { // Added curly braces here
+                printf("[!] Particionamento circular-fit.\n");
                 Runcircularfit(tam_mem);
-            else
+            } else { // Added curly braces here
                 printf("Politica invalida.\n");
+            }
             break;
         case 2:
+            printf("[!] Particionamento Buddy System.\n"); // Added descriptive print for Buddy System
             Runbuddy(tam_mem);
             break;
         default:
