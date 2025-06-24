@@ -422,7 +422,6 @@ void Runworst_fit(int tam_mem){
 
     limpar_memoria();
 }
-
 // ------------- BUDDY -------------------
 #define TAM_MEM_PADRAO 256
 
@@ -440,9 +439,9 @@ typedef struct BlockBuddy {
 // Cria e inicializa primeiro bloco do buddy
 BlockBuddy* InitBlock(int tam_total) {
     BlockBuddy* Block = malloc(sizeof(BlockBuddy));
-    Block->inicio = 0;
-    Block->tam = tam_total;
-    Block->lado = '-';
+    Block->inicio = 0;          
+    Block->tam = tam_total;     
+    Block->lado = '-';     
     Block->status = 1;
     strcpy(Block->pid, "");
     Block->tam_pedido = 0;
@@ -453,9 +452,9 @@ BlockBuddy* InitBlock(int tam_total) {
 // Divide recursivamente o Block até chegar no tamanho desejado
 void SplitBlock(BlockBuddy* Block, int target) {
     while (Block->tam / 2 >= target) {
-        BlockBuddy* buddy = malloc(sizeof(BlockBuddy));
-        buddy->tam = Block->tam / 2;
-        buddy->inicio = Block->inicio + buddy->tam;
+        BlockBuddy* buddy = malloc(sizeof(BlockBuddy)); // Cria um novo bloco de metade do tamanho 
+        buddy->tam = Block->tam / 2;                    
+        buddy->inicio = Block->inicio + buddy->tam;     
         buddy->status = 1;
         strcpy(buddy->pid, "");
         buddy->tam_pedido = 0;
@@ -464,25 +463,25 @@ void SplitBlock(BlockBuddy* Block, int target) {
 
         Block->tam = buddy->tam;
         Block->next = buddy;
-        Block->lado = 'L';
+        Block->lado = 'L';         // Prioriza o bloco esquerdo a cada split
 
         printf("Dividindo Block de %d KB em %d L e %d R\n",
                        Block->tam * 2, Block->tam, buddy->tam);
     }
 }
 
-// Aloca memória usando BUddy
+// Aloca memória usando Buddy
 int AllocBlock(BlockBuddy* head, char* pid, int tam_req) {
     int tam_alocado = 1;
-    while (tam_alocado < tam_req) tam_alocado <<= 1;
+    while (tam_alocado < tam_req) tam_alocado <<= 1; // Arredonda para a potência de 2 mais próxima (ex: Req 30kb, tam 32kb)
 
     BlockBuddy* atual = head;
     while (atual) {
-        if (atual->status && atual->tam > tam_alocado)
+        if (atual->status && atual->tam > tam_alocado) // Divide bloco se o tamanho ainda não é o mínimo para o processo 
             SplitBlock(atual, tam_alocado);
 
-        if (atual->status && atual->tam == tam_alocado) {
-            atual->status = 0;
+        if (atual->status && atual->tam == tam_alocado) {  // Aloca se bloco livre com o menor tamanho
+            atual->status = 0;                             
             atual->tam_pedido = tam_req;
             strcpy(atual->pid, pid);
             printf("> Alocando %s com tamanho %d para Block [%d %c]\n",
@@ -496,15 +495,16 @@ int AllocBlock(BlockBuddy* head, char* pid, int tam_req) {
     return -1;
 }
 
+
 // Libera memória associada a um processo e tenta juntar Blocks
 void FreeBlock(BlockBuddy *head, char *pid)
 {
     BlockBuddy *atual = head;
-    while (atual)
+    while (atual)   // Libera memória do processo 
     {
         if (!atual->status && strcmp(atual->pid, pid) == 0)
         {
-            atual->status = 1;
+            atual->status = 1;        
             atual->tam_pedido = 0;
             strcpy(atual->pid, "");
             break;
@@ -513,7 +513,7 @@ void FreeBlock(BlockBuddy *head, char *pid)
     }
 
     atual = head;
-    while (atual && atual->next)
+    while (atual && atual->next) // Junta blocos adjacentes se ambos livres
     {
         if (atual->status && atual->next->status &&
             atual->tam == atual->next->tam &&
@@ -536,7 +536,7 @@ int InnerFrag(BlockBuddy* head) {
     int frag = 0;
     while (head) {
         if (!head->status && head->tam_pedido > 0)
-            frag += head->tam - head->tam_pedido;
+            frag += head->tam - head->tam_pedido; // Diferença entre tamanho alocado e o da requisição
         head = head->next;
     }
     return frag;
@@ -550,7 +550,7 @@ void PrintBuddy(BlockBuddy* head) {
     BlockBuddy* current = head;
     int total_allocated = 0;
     int total_frag = 0;
-    int total_memory = 0; // Esta variável parece estar calculando a soma dos tamanhos dos blocos na lista, não a memória total inicializada
+    int total_memory = 0;
 
     while (current) {
         // Path: e.g., 128L -> 64L -> 32L
@@ -558,7 +558,7 @@ void PrintBuddy(BlockBuddy* head) {
         int path_size = current->tam;
         char path[256] = "";
         char seg[32];
-        int rev[10], depth = 0;
+        int rev[10], depth = 0;         // Profundidade de árvore e Caminho inverso do bloco
 
          while (path_size < TAM_MEM_PADRAO)
         {
@@ -566,10 +566,12 @@ void PrintBuddy(BlockBuddy* head) {
             int is_left = (path_start % parent_size == 0);
             rev[depth++] = is_left;
             path_size = parent_size;
-            path_start = is_left ? path_start : path_start - path_size / 2;
+            if (!is_left) {
+                path_start = path_start - path_size / 2;
+            }
         }
 
-
+        // Mostra caminho do bloco raiz -> bloco alocado
        int tmp_size = TAM_MEM_PADRAO;
         for (int i = depth - 1; i >= 0; i--) {
             tmp_size /= 2;
