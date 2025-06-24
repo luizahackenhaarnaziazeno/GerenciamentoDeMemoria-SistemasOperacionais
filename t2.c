@@ -651,7 +651,9 @@ int main() {
     int tipo_part;
     int politica = 0;
     int tam_mem;
+    int menu = 1;
 
+    while(menu == 1){
     printf("Escolha o tipo de particionamento:\n");
     printf("1 - Particionamento Variavel\n");
     printf("2 - Particionamento Definido (Buddy)\n> ");
@@ -667,10 +669,14 @@ int main() {
     printf("Informe o tamanho da memoria principal (em KB, potencia de 2):\n> ");
     scanf("%d", &tam_mem);
 
-    // Validação básica para o Buddy System: tamanho deve ser potência de 2
+    // Validação: Tamanho deve ser potência de 2
     if (tipo_part == 2 && (tam_mem <= 0 || (tam_mem & (tam_mem - 1)) != 0)) {
         printf("Erro: Para o Buddy System, o tamanho da memoria deve ser uma potencia de dois e positivo.\n");
-        return 1;
+    } else if (tipo_part == 1 && (tam_mem <= 0 || (tam_mem & (tam_mem - 1)) != 0)){
+        printf("Erro: O tamanho da memoria deve ser uma potencia de dois e positivo.\n");
+    } else {
+        menu = 0; 
+        break;
     }
 
     switch (tipo_part) {
