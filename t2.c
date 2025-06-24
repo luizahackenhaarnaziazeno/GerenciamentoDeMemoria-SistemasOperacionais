@@ -677,8 +677,8 @@ int main() {
     } else {
         menu = 0; 
         break;
+      }
     }
-
     switch (tipo_part) {
         case 1:
             if (politica == 1) { 
