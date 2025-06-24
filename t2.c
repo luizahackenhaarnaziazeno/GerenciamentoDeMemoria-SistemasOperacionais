@@ -396,13 +396,13 @@ void processar_requisicoes_arquivo_worst_fit(const char *nome_arquivo) {
     int tamanho;
 
     while (fgets(linha, sizeof(linha), arquivo) != NULL) {
-        linha[strcspn(linha, "\n")] = 0; // Remove o '\n'
+        linha[strcspn(linha, "\n")] = 0; 
 
         if (sscanf(linha, "IN(%c,%d)", &id_processo, &tamanho) == 2) {
-            alocar_memoria_worst_fit(id_processo, tamanho); // Calls the new Worst-Fit allocation
+            alocar_memoria_worst_fit(id_processo, tamanho); 
         }
         else if (sscanf(linha, "OUT(%c)", &id_processo) == 1) {
-            liberar_memoria(id_processo); // Deallocation logic remains the same
+            liberar_memoria(id_processo); 
         } else {
             printf("Linha invalida no arquivo: %s\n", linha);
         }
@@ -675,18 +675,18 @@ int main() {
 
     switch (tipo_part) {
         case 1:
-            if (politica == 1) { // Added curly braces here
+            if (politica == 1) { 
                 printf("[!] Particionamento worst-fit.\n");
                 Runworst_fit(tam_mem);
-            } else if (politica == 2) { // Added curly braces here
+            } else if (politica == 2) {
                 printf("[!] Particionamento circular-fit.\n");
                 Runcircularfit(tam_mem);
-            } else { // Added curly braces here
+            } else { 
                 printf("Politica invalida.\n");
             }
             break;
         case 2:
-            printf("[!] Particionamento Buddy System.\n"); // Added descriptive print for Buddy System
+            printf("[!] Particionamento Buddy System.\n"); 
             Runbuddy(tam_mem);
             break;
         default:
