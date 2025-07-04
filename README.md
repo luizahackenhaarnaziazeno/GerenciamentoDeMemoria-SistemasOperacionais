@@ -22,11 +22,10 @@ O objetivo principal deste trabalho é desenvolver uma ferramenta que simule e v
 Esta abordagem lida com blocos de memória de tamanhos diversos que podem ser alocados para processos. Quando um processo libera memória, o bloco liberado tenta coalescer com blocos livres adjacentes para formar um bloco maior.
 
 * **Política Circular-Fit**:
-    * A busca por um bloco livre adequado para uma requisição de alocação começa a partir do ponto onde a última alocação ocorreu (`ultimo_alocado`).
-    * Se um bloco livre encontrado for maior que a requisição, ele é dividido em um bloco alocado e um novo bloco livre.
+Uma variação da política First-Fit, onde a busca por um bloco livre adequado para uma requisição de alocação inicia a partir da localização onde a pesquisa anterior terminou. Se um bloco livre encontrado for maior que a requisição, ele é dividido em um bloco alocado e um novo bloco livre.
+
 * **Política Worst-Fit**:
-    * A alocação é realizada no maior bloco livre disponível que pode satisfazer a requisição.
-    * Similar ao Circular-Fit, se o maior bloco livre for maior que o necessário, ele é dividido.
+A alocação é realizada no maior bloco livre disponível que pode satisfazer a requisição.Similar ao Circular-Fit, se o maior bloco livre for maior que o necessário, ele é dividido.
 
 ### Sistema Buddy
 
