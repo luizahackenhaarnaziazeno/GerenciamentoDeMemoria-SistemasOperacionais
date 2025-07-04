@@ -60,7 +60,7 @@ A ferramenta permite a visualização dos espaços livres para alocação a cada
 
 ## 🚀 Compilação e Execução
 
-Para instruções detalhadas sobre como compilar e executar o programa, por favor, consulte o **manual do usuário** (`manual_usuario.pdf`) incluído neste repositório (ou conforme especificado nas entregas do projeto).
+Para instruções detalhadas sobre como compilar e executar o programa, por favor, consulte o **manual do usuário** (`manual_usuario.pdf`) incluído neste repositório.
 
 
 ### 👥 Autores:
